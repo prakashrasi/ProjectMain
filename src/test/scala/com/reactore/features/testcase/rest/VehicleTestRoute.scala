@@ -515,6 +515,42 @@ class RouteTestForVehicle extends WordSpec with Matchers with ScalatestRouteTest
         responseAs[String] shouldBe "Vehicle Table Is Empty In The Database".asJson
       }
     }
+
+    "getAllVehicles For Given Years" in {
+      when(MockVehicleServiceAndRoute.vehiclesRepository.vehiclesFuture).thenReturn(Future.successful(seqOfVehicle))
+      when(MockVehicleServiceAndRoute.companyRepository.companyFuture).thenReturn(Future.successful(seqOfCompany))
+
+      Get("/vehicle/getAllVehiclesBasedOnYears/25") ~> mockRoute ~> check {
+        responseAs[String] shouldBe Seq(vehicle1, vehicle2).asJson
+      }
+    }
+
+    "getAllVehicles For Given Years For Handle No Such Entity Exception" in {
+      when(MockVehicleServiceAndRoute.vehiclesRepository.vehiclesFuture).thenReturn(Future.successful(seqOfVehicle))
+      when(MockVehicleServiceAndRoute.companyRepository.companyFuture).thenReturn(Future.successful(seqOfCompany))
+
+      Get("/vehicle/getAllVehiclesBasedOnYears/29") ~> mockRoute ~> check {
+        responseAs[String] shouldBe "There Is No Vehicle For This Company Based On Years In The Database".asJson
+      }
+    }
+
+    "getAllVehicles For Given Years Handle Exception For Empty List Is Passed For Vehicle" in {
+      when(MockVehicleServiceAndRoute.vehiclesRepository.vehiclesFuture).thenReturn(Future.successful(Nil))
+      when(MockVehicleServiceAndRoute.companyRepository.companyFuture).thenReturn(Future.successful(seqOfCompany))
+
+      Get("/vehicle/getAllVehiclesBasedOnYears/29") ~> mockRoute ~> check {
+        responseAs[String] shouldBe "Vehicle  Table Is Empty In The Database".asJson
+      }
+    }
+
+    "getAllVehicles For Given Years Handle Exception For Empty List Is Passed For Company" in {
+      when(MockVehicleServiceAndRoute.vehiclesRepository.vehiclesFuture).thenReturn(Future.successful(seqOfVehicle))
+      when(MockVehicleServiceAndRoute.companyRepository.companyFuture).thenReturn(Future.successful(Nil))
+
+      Get("/vehicle/getAllVehiclesBasedOnYears/29") ~> mockRoute ~> check {
+        responseAs[String] shouldBe "Company  Table Is Empty In The Database".asJson
+      }
+    }
   } //endofprocess
 }
 

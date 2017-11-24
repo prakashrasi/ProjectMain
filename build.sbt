@@ -2,7 +2,7 @@ name := "ProjectMain"
 
 version := "1.0"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.11.7"
 
 libraryDependencies ++= Seq("joda-time" % "joda-time" % "2.9.9",
   "org.scalatest" %% "scalatest" % "3.0.4" % "test",
@@ -16,4 +16,8 @@ libraryDependencies ++= Seq("joda-time" % "joda-time" % "2.9.9",
   "com.zaxxer" % "HikariCP" % "2.4.3",
   "com.github.tminglei" %% "slick-pg" % "0.15.4",
   "com.github.tminglei" %% "slick-pg_joda-time" % "0.15.4",
-  "com.github.tminglei" %% "slick-pg_jts" % "0.15.4")
+  "com.github.tminglei" %% "slick-pg_jts" % "0.15.4",
+  "com.github.tminglei" %% "slick-pg" % "0.15.0-RC",
+  "com.github.tminglei" %% "slick-pg_joda-time" % "0.15.0-RC",
+  "com.github.tminglei" %% "slick-pg_jts" % "0.15.0-RC"
+)

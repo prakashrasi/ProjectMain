@@ -1,11 +1,12 @@
-package com.reactore.core
+package com.reactore.bookcore
+
+import java.text.SimpleDateFormat
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives
-import com.reactore.bookcore.EmployeeAvailabilityOverlappingException
 import com.reactore.core.CustomSerializers.{JodaDateSerializer, JodaDateTimeSerializer}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, DateTimeZone, LocalDate}
+import org.joda.time.{DateTime, LocalDate}
 import org.json4s.JsonAST.{JNull, JString}
 import org.json4s.native.Serialization._
 import org.json4s.{CustomSerializer, DefaultFormats, Formats}
@@ -15,12 +16,6 @@ import scala.concurrent.Future
 
 object CustomSerializers {
 
-  implicit class DateTimeConversion(dateTime: DateTime) {
-    def toUTC: DateTime = {
-      dateTime.withZoneRetainFields(DateTimeZone.UTC)
-    }
-  }
-
   case object JodaDateSerializer extends CustomSerializer[LocalDate](date => ( {
     case JString(date) => LocalDate.parse(date)
     case JNull         => null
@@ -29,7 +24,7 @@ object CustomSerializers {
   }))
 
   case object JodaDateTimeSerializer extends CustomSerializer[DateTime](date => ( {
-    case JString(date) => DateTime.parse(date, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")).toUTC
+    case JString(date) => DateTime.parse(date, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"))
     case JNull         => null
   }, {
     case localDateTime: DateTime => JString(localDateTime.toString("yyyy-MM-dd HH:mm:ss"))
@@ -39,6 +34,7 @@ object CustomSerializers {
 
 trait DirectiveWithGenericErrorHandling extends Directives {
   implicit val formats: Formats = new DefaultFormats {
+    override def dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
   } ++ List(JodaDateSerializer, JodaDateTimeSerializer)
 
   /** Generic Method For Error Handling **/
@@ -54,10 +50,10 @@ trait DirectiveWithGenericErrorHandling extends Directives {
     }
   }
 
+
   def toJson(value: Any): String = {
     if (value.isInstanceOf[String]) value.asInstanceOf[String] else value.asInstanceOf[AnyRef].asJson
   }
-
 
   implicit class JsonConvertion(value: AnyRef) {
     def asJson: String = {
@@ -67,16 +63,15 @@ trait DirectiveWithGenericErrorHandling extends Directives {
 
   def handleErrorMessages(ex: Throwable) = {
     ex match {
-      case cmd: NoSuchEntityException                    => (StatusCodes.BadRequest, cmd.message)
-      case cmd: DuplicateEntityException                 => (StatusCodes.BadRequest, cmd.message)
-      case cmd: InvalidIdException                       => (StatusCodes.Conflict, cmd.message)
-      case cmd: GenericException                         => (StatusCodes.Conflict, cmd.message)
-      case cmd: EmptyListException                       => (StatusCodes.Conflict, cmd.message)
-      case cmd: ForeignKeyException                      => (StatusCodes.Conflict, cmd.message)
-      case cmd: UniqueKeyViolationException              => (StatusCodes.Conflict, cmd.message)
-      case cmd: EmployeeAvailabilityOverlappingException => (StatusCodes.Conflict, cmd.message)
-      case cmd: DataBaseException                        => (StatusCodes.Conflict, cmd.message)
-      case any: Exception                                => {
+      case cmd: NoSuchEntityException       => (StatusCodes.BadRequest, cmd.message)
+      case cmd: DuplicateEntityException    => (StatusCodes.BadRequest, cmd.message)
+      case cmd: InvalidIdException          => (StatusCodes.Conflict, cmd.message)
+      case cmd: GenericException            => (StatusCodes.Conflict, cmd.message)
+      case cmd: EmptyListException          => (StatusCodes.Conflict, cmd.message)
+      case cmd: ForeignKeyException         => (StatusCodes.Conflict, cmd.message)
+      case cmd: UniqueKeyViolationException => (StatusCodes.Conflict, cmd.message)
+      case cmd: DataBaseException           => (StatusCodes.Conflict, cmd.message)
+      case any: Exception                   => {
         val errMsg: String = if (ex.getCause != null) ex.getCause.getMessage
         else if (ex.getMessage != null) ex.getMessage
         else "Internal Server Error"
@@ -86,3 +81,5 @@ trait DirectiveWithGenericErrorHandling extends Directives {
     }
   }
 }
+
+object DirectiveWithGenericErrorHandling extends DirectiveWithGenericErrorHandling

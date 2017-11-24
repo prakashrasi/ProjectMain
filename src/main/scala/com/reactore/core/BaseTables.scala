@@ -77,4 +77,7 @@ trait BaseTables {
   }
 
   lazy val vehicleTypeTable = new TableQuery(tag => new VehicleTypeTable(tag))
+
+
+
 }

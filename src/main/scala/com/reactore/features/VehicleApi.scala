@@ -1,10 +1,9 @@
 package com.reactore.features
 
-import java.sql.Timestamp
+import java.util.Date
 
 import akka.http.scaladsl.server.Route
 import com.reactore.core._
-import org.joda.time.{LocalDate, _}
 import org.json4s.native.Serialization._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -12,7 +11,6 @@ import scala.concurrent.Future
 
 class VehicleService {
   self: VehicleFacadeComponent =>
-
 
   def insertDataOnlyForVehicel(insertVehicleEntity: Vehicle): Future[Int] = {
     for {
@@ -215,29 +213,21 @@ class VehicleService {
 
   /** 6)) Create a method to get all the vehicles which belong to a company older than given years **/
   def getAllVehiclesBasedOnYears(givenYears: Long): Future[Seq[Vehicle]] = {
+    val currentDate: Date = new java.util.Date()
     for {
       vehicleWithOutFuture <- vehiclesRepository.vehiclesFuture
       companyTableWithOutFuture <- companyRepository.companyFuture
 
       finalResult = if (companyTableWithOutFuture.nonEmpty) {
-        val companyIdWithStartYear: Seq[(Long, LocalDateTime)] = companyTableWithOutFuture.map(company => (company.companyId, convertLocalDate(company.startYear).toLocalDateTime(convertLocalTime(company.startYear))))
-        val companyId: Seq[Long] = companyIdWithStartYear.filter(companyIdWithYear => Years.yearsBetween(companyIdWithYear._2, LocalDateTime.now()).getYears > givenYears).map(_._1)
+        val seqOfCompanyId: Seq[Long] = companyTableWithOutFuture.filter(company => (currentDate.getYear - company.startYear.getYear) > givenYears).map(_.companyId)
         if (vehicleWithOutFuture.nonEmpty) {
-          val resultOfVehicle: Seq[Vehicle] = vehicleWithOutFuture.filter(vehicle => companyId.contains(vehicle.companyId))
+          val resultOfVehicle: Seq[Vehicle] = vehicleWithOutFuture.filter(vehicle => seqOfCompanyId.contains(vehicle.companyId))
           if (resultOfVehicle.nonEmpty) {
             resultOfVehicle
           } else throw NoSuchEntityException(message = "There Is No Vehicle For This Company Based On Years In The Database", exception = new Exception)
         } else throw EmptyListException(message = "Vehicle  Table Is Empty In The Database", exception = new Exception)
       } else throw EmptyListException(message = "Company  Table Is Empty In The Database", exception = new Exception)
     } yield finalResult
-  }
-
-  def convertLocalDate(date: Timestamp): LocalDate = {
-    new LocalDate(date)
-  }
-
-  def convertLocalTime(time: Timestamp): LocalTime = {
-    new LocalTime(time)
   }
 }
 
@@ -303,6 +293,4 @@ class VehicleRoute(vehicleService: VehicleService) extends DirectiveWithGenericE
       }
     }
   } //endOfPathPrefix
-
-
 }

@@ -454,7 +454,7 @@ class VehicleServiceTest extends WordSpec with Matchers with MockitoSugar with S
       actualResult.failed.futureValue shouldBe an[EmptyListException]
     }
 
-    /*"getAllVehicles For Given Years" in {
+    "getAllVehicles For Given Years" in {
       when(MockVehicleService.vehiclesRepository.vehiclesFuture).thenReturn(Future.successful(seqOfVehicle))
       when(MockVehicleService.companyRepository.companyFuture).thenReturn(Future.successful(seqOfCompany))
       val actualResult: Future[Seq[Vehicle]] = MockVehicleService.getAllVehiclesBasedOnYears(25)
@@ -466,9 +466,21 @@ class VehicleServiceTest extends WordSpec with Matchers with MockitoSugar with S
       when(MockVehicleService.companyRepository.companyFuture).thenReturn(Future.successful(seqOfCompany))
       val actualResult: Future[Seq[Vehicle]] = MockVehicleService.getAllVehiclesBasedOnYears(29)
       actualResult.failed.futureValue shouldBe an[NoSuchEntityException]
-    }*/
+    }
 
-    //////////////////////////////////////
+    "getAllVehicles For Given Years Handle Exception For Empty List Is Passed For Vehicle" in {
+      when(MockVehicleService.vehiclesRepository.vehiclesFuture).thenReturn(Future.successful(Nil))
+      when(MockVehicleService.companyRepository.companyFuture).thenReturn(Future.successful(seqOfCompany))
+      val actualResult: Future[Seq[Vehicle]] = MockVehicleService.getAllVehiclesBasedOnYears(25)
+      actualResult.failed.futureValue shouldBe an[EmptyListException]
+    }
+
+    "getAllVehicles For Given Years Handle Exception For Empty List Is Passed For Company" in {
+      when(MockVehicleService.vehiclesRepository.vehiclesFuture).thenReturn(Future.successful(seqOfVehicle))
+      when(MockVehicleService.companyRepository.companyFuture).thenReturn(Future.successful(Nil))
+      val actualResult: Future[Seq[Vehicle]] = MockVehicleService.getAllVehiclesBasedOnYears(25)
+      actualResult.failed.futureValue shouldBe an[EmptyListException]
+    }
   } //endOfProcess
 }
 
